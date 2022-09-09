@@ -99,6 +99,7 @@ elif op == "2":
         print(dm5_hash)
         print(message)
         socket.disconnect(proxy)# se desconecta del proxy
+        
         for i in message[:-1]: #se recorre el mensaje del proxy
             addr=i.decode().split('-') #se separa la cadena para tener la direccion del servidor y la cantidad de partes que van en el
             print(addr[0])
@@ -113,6 +114,7 @@ elif op == "2":
                 f.write(message[0])
                 f.close()
                 count_part+=1
+            socket.disconnect(addr[0])
         print("Archivo descargado")
 
 
