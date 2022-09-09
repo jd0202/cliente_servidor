@@ -22,6 +22,7 @@ sx : server
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 #ip = "tcp://"+sk.gethostbyname(sk.gethostname())
+
 ip = "tcp://"+input("ingrese la su direccion ip")
 #socket.bind("tcp://*:5555")
 print("Proxy in: "+ip+":5555")
