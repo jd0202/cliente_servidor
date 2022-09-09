@@ -36,7 +36,8 @@ if op == "1":
     upload
         [id(cx),u,name_client,name_file,hash,num_all_parts...]
     '''
-    size=1024*1024*1024 #se calcula el espacio a leer con cada parte
+    #size=1024*1024*1024 #se calcula el espacio a leer con cada parte
+    size=1024*1024*10 #se calcula el espacio a leer con cada parte
 
     if os.path.exists(name_file): # se valida si existe el archivo
         print("Enviando archivo") 
