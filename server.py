@@ -24,8 +24,8 @@ proxy = ip_proxy+":"+port_proxy
 #socket.connect("tcp://localhost:5555") # se conecta al servidor proxy
 socket.connect(proxy) # se conecta al servidor proxy
 
-addr = "tcp://"+sk.gethostbyname(sk.gethostname())
-#addr = "tcp://"+input("ingrese su direccion ip: ") #se define una variable con el puerto
+#addr = "tcp://"+sk.gethostbyname(sk.gethostname())
+addr = "tcp://"+input("ingrese su direccion ip: ") #se define una variable con el puerto
 #addr = "tcp://localhost:" # se define una variable con la direccion ip
 port = input("Ingrese su puerto: ") #se define una variable con el puerto
 #port="1111" #se define una variable con el puerto
