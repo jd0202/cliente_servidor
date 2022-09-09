@@ -43,6 +43,7 @@ if op == "1":
         size_file = os.path.getsize(name_file) #se obtiene el espacio que ocupa el archivo
         print("Tamaño de archivo: "+str(size_file)+" bytes")
 
+        dm5_hash = md5Hash(name_file) #se obtiene el hash del archivo
         num_all_parts = math.ceil(size_file/size) #se calcula el numeor de partes en las que se dividira el archivo
         print("Partes a enviar: "+str(num_all_parts))
 
@@ -56,7 +57,6 @@ if op == "1":
         elif message[0].decode() == "2" : #respuesta para codigo 2
             print(f"Received reply result: Ya cuenta con un archivo con ese nombre")
         else:
-            dm5_hash = md5Hash(name_file) #se obtiene el hash del archivo
             count_part=1 #contador de partes de archivo
             limit=0 #variable para controlar el limite de partes que iran a cada servidor
             #############################
