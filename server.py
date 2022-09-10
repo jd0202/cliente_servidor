@@ -24,14 +24,19 @@ proxy = ip_proxy+":"+port_proxy
 #socket.connect("tcp://localhost:5555") # se conecta al servidor proxy
 socket.connect(proxy) # se conecta al servidor proxy
 
+s = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
+s.connect(("8.8.8.8",80))
+addr = "tcp://"+s.getsockname()[0]
+s.close()
+
 #addr = "tcp://"+sk.gethostbyname(sk.gethostname())
-addr = "tcp://"+input("ingrese su direccion ip: ") #se define una variable con el puerto
+#addr = "tcp://"+input("ingrese su direccion ip: ") #se define una variable con el puerto
 #addr = "tcp://localhost:" # se define una variable con la direccion ip
 port = input("Ingrese su puerto: ") #se define una variable con el puerto
 #port="1111" #se define una variable con el puerto
 my_addr= addr+":"+port
 
-ubicacion = input("ingrese el nombre de la carpeta a usar")
+ubicacion = input("ingrese el nombre de la carpeta a usar: ")
 
 if not(os.path.exists(ubicacion)):
     os.mkdir(ubicacion)
