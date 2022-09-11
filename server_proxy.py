@@ -1,6 +1,7 @@
 
 import time
 import os
+import random
 import zmq
 import json
 import math
@@ -60,10 +61,18 @@ def save_file_info(data,name_json): #Funcion para guardar el diccionario de info
 
 def answer_client(servers, parts_per_server,last_server): #funcion para organizar la respuesta del cliente
     answer =list()
-    for i in servers:
-        answer.append(bytes((i+"-"+str(parts_per_server)).encode()))
-    if last_server > 0:
-        answer[-1]=(bytes((i+"-"+str(last_server)).encode()))
+    if int(len(servers)) > int(parts_per_server):
+        if parts_per_server == 1:
+            s = random.choice(servers)+"-1"
+            answer.append(bytes(s.encode()))
+        else:
+            for i in range(int(parts_per_server)):
+                answer.append(bytes((random.choice(servers)+"-1").encode()))
+    else:
+        for i in servers:
+            answer.append(bytes((i+"-"+str(parts_per_server)).encode()))
+        if last_server > 0:
+            answer[-1]=(bytes((i+"-"+str(last_server)).encode()))
     #print(answer)
     return answer
     
@@ -91,12 +100,17 @@ while True:
             name_file = message[3].decode()
             md5_hash = message[4].decode()
             num_all_parts = message[5].decode()
-            parts_per_server = math.ceil(int(num_all_parts)/len(servers)) #calcula el numero de partes que el corresponde a cada server
             last_server=0
-            if parts_per_server * len(servers) > int(num_all_parts): #en caso de que la division de partes no sea exacta se dejan las aprtes sobrantes para el ultimo server
-                last_server = abs(parts_per_server * (len(servers)-1) - int(num_all_parts))
+            parts_per_server = 0
+            if int(num_all_parts) < int(len(servers)):
+                parts_per_server = num_all_parts
             else:
-                last_server = 0
+                parts_per_server = math.ceil(int(num_all_parts)/len(servers)) #calcula el numero de partes que el corresponde a cada server
+                
+                if parts_per_server * len(servers) > int(num_all_parts): #en caso de que la division de partes no sea exacta se dejan las aprtes sobrantes para el ultimo server
+                    last_server = abs(parts_per_server * (len(servers)-1) - int(num_all_parts))
+                else:
+                    last_server = 0
                 
             '''
             data[hash]:[ num_all_part: #
@@ -104,10 +118,9 @@ while True:
                         direccion:puerto-parts
                         ]
             '''
-            if name_client in data_client.keys():
-                if name_file in data_client[name_client].keys():
-                    socket.send_multipart([b'2']) #se responde con el codigo de que ya cuenta con un archivo con el mismo nombre
-            if md5_hash in data.keys(): #se valida si ya existe el hash
+            if name_client in data_client.keys() and name_file in data_client[name_client].keys():
+                socket.send_multipart([b'2']) #se responde con el codigo de que ya cuenta con un archivo con el mismo nombre
+            elif md5_hash in data.keys(): #se valida si ya existe el hash
                 if name_client in data[md5_hash][1]: #se valida si un cliente trata de enviar el mismo archivo
                     socket.send_multipart([b'1']) #se responde con el codigo de que ya existe el archivo
                 else:
@@ -115,7 +128,11 @@ while True:
                     #data[md5_hash].add_client_name_file(name_client, name_file)
                     data[md5_hash][1][name_client] = name_file #se añade el nombre del nuevo clienet que envio un archivo ya existente
                     save_file_info(data,"files.json") #se guarda la informacion del archivo en el json
-                    data_client[name_client][name_file] = md5_hash # se guarda informacion de los clientes y sus archivos en caso de que ueira descargarlos
+                    #data_client[name_client][name_file] = md5_hash # se guarda informacion de los clientes y sus archivos en caso de que ueira descargarlos
+                    if name_client in data_client.keys():
+                        data_client[name_client][name_file] = md5_hash #se crea la informacion para el nuevo archivo
+                    else:
+                        data_client[name_client] = {name_file:md5_hash} #se crea la informacion para el nuevo archivo
                     save_file_info(data_client,"client.json")
                     socket.send_multipart([b'0']) #se responde con el codigo de archivo recibido
             else: # en caso de que no exista el hash se crea
@@ -126,7 +143,10 @@ while True:
                 socket.send_multipart(ans) # se le indica al cliente a que servidor debe enviar las partes del archivo
                 data[md5_hash] = [num_all_parts, {name_client:name_file}, [i.decode() for i in ans]] #se crea el nuevo hash
                 save_file_info(data,"files.json") #se guarda la informacion del archivo en el json
-                data_client[name_client] = {name_file:md5_hash} #se crea la informacion para el nuevo archivo
+                if name_client in data_client.keys():
+                    data_client[name_client][name_file] = md5_hash #se crea la informacion para el nuevo archivo
+                else:
+                    data_client[name_client] = {name_file:md5_hash} #se crea la informacion para el nuevo archivo
                 save_file_info(data_client,"client.json")
         elif message[1].decode() == "d":
             name_client = message[2].decode()
