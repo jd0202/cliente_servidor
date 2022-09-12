@@ -1,4 +1,5 @@
 
+from http import server
 import time
 import os
 import random
@@ -52,16 +53,17 @@ struct message:
 ###############################
 #bloque de prueba
 '''servers.append("serve1:puerto1")
-servers.append("serve1:puerto2")'''
+servers.append("serve2:puerto2")'''
 ###############################
 
 def save_file_info(data,name_json): #Funcion para guardar el diccionario de informacion en el json
     with open(name_json, "w") as newfiles:
         json.dump(data, newfiles, indent=4)
 
-def answer_client(servers, parts_per_server,last_server): #funcion para organizar la respuesta del cliente
+def answer_client(servers, parts_per_server,last_server,server_sin_part): #funcion para organizar la respuesta del cliente
     answer =list()
-    if int(len(servers)) > int(parts_per_server):
+    if str(type(parts_per_server)) == "<class 'str'>":
+        parts_per_server = int(parts_per_server.split('-')[1])
         if parts_per_server == 1:
             s = random.choice(servers)+"-1"
             answer.append(bytes(s.encode()))
@@ -69,10 +71,16 @@ def answer_client(servers, parts_per_server,last_server): #funcion para organiza
             for i in range(int(parts_per_server)):
                 answer.append(bytes((random.choice(servers)+"-1").encode()))
     else:
-        for i in servers:
-            answer.append(bytes((i+"-"+str(parts_per_server)).encode()))
-        if last_server > 0:
-            answer[-1]=(bytes((i+"-"+str(last_server)).encode()))
+        if server_sin_part > 0:
+            for i in range(len(servers)-server_sin_part):
+                answer.append(bytes((servers[i]+"-"+str(parts_per_server)).encode()))
+            if last_server > -1:
+                answer[-1]=(bytes((servers[i]+"-"+str(last_server)).encode()))
+        else:
+            for i in servers:
+                answer.append(bytes((i+"-"+str(parts_per_server)).encode()))
+            if last_server > -1:
+                answer[-1]=(bytes((i+"-"+str(last_server)).encode()))
     #print(answer)
     return answer
     
@@ -100,17 +108,29 @@ while True:
             name_file = message[3].decode()
             md5_hash = message[4].decode()
             num_all_parts = message[5].decode()
-            last_server=0
+            last_server = -1
             parts_per_server = 0
+            server_sin_part = 0
             if int(num_all_parts) < int(len(servers)):
-                parts_per_server = num_all_parts
+                parts_per_server = "random-"+num_all_parts
             else:
                 parts_per_server = math.ceil(int(num_all_parts)/len(servers)) #calcula el numero de partes que el corresponde a cada server
                 
                 if parts_per_server * len(servers) > int(num_all_parts): #en caso de que la division de partes no sea exacta se dejan las aprtes sobrantes para el ultimo server
-                    last_server = abs(parts_per_server * (len(servers)-1) - int(num_all_parts))
+                    if parts_per_server * (len(servers)-1) > int(num_all_parts):
+                        while parts_per_server *((len(servers)-1)-server_sin_part) > int(num_all_parts):
+                            server_sin_part+=1
+                        last_server = abs(parts_per_server * ((len(servers)-1)-server_sin_part) - int(num_all_parts))
+                    else:
+                        last_server = abs(parts_per_server * (len(servers)-1) - int(num_all_parts))
                 else:
-                    last_server = 0
+                    last_server = -1
+            
+            print("#parts: "+str(num_all_parts))
+            print("#servers: " +str(len(servers)))
+            print("parts per server: "+str(parts_per_server))
+            print("Last server: "+str(last_server))
+            print("Server sin part: "+str(server_sin_part))
                 
             '''
             data[hash]:[ num_all_part: #
@@ -137,7 +157,7 @@ while True:
                     socket.send_multipart([b'0']) #se responde con el codigo de archivo recibido
             else: # en caso de que no exista el hash se crea
                 #data[md5_hash]= File(num_of_part, num_all_parts, name_client, name_file) 
-                ans=answer_client(servers,parts_per_server,last_server)
+                ans=answer_client(servers,parts_per_server,last_server,server_sin_part)
                 '''[direserver1:puertos1-parts_per_servers1, direserver2:puertos2-parts_per_servers2]'''
                 print("To: "+name_client+" : "+str(ans))
                 socket.send_multipart(ans) # se le indica al cliente a que servidor debe enviar las partes del archivo
