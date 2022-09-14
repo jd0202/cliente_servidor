@@ -78,6 +78,7 @@ if op == "1":
                         count_part+=1 # se incrementa el contador de aprtes
                     socket.disconnect(addr[0]) #se desconecta del servidor para conetarse al siguiente
                 f.close() #se cierra el archivo una vez leido
+                print("Archivo enviado")
     else:
         print("Archivo no encontrado, por favor revise el nombre del archivo")
 elif op == "2":
@@ -96,9 +97,9 @@ elif op == "2":
         count_part=1 #contador de partes de archivo
         limit=0 #variable para controlar el limite de partes que iran a cada servidor
         dm5_hash = message[-1].decode()
-        print(type(dm5_hash))
-        print(dm5_hash)
-        print(message)
+        #print(type(dm5_hash))
+        #print(dm5_hash)
+        #print(message)
         socket.disconnect(proxy)# se desconecta del proxy
         
         for i in message[:-1]: #se recorre el mensaje del proxy
