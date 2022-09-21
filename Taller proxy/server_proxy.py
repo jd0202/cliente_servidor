@@ -38,6 +38,7 @@ socket.bind(ip+":5555")
 
 
 servers = list() #listado de servidores en linea
+files_up=list()
 
 '''
 struct message:
