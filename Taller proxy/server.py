@@ -1,7 +1,7 @@
-import time
 import os
 import zmq
 import socket as sk
+import json
 
 '''
 0: Archivo recibido
