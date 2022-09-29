@@ -58,6 +58,8 @@ subida:
 [b'cu', name, file]
 bajada:
 [b'cd', name]
+archivo no en el dominio
+[b'cd', b'ND', predecesor(ip:port)]
 '''
 files_to_request=[]
 
@@ -188,7 +190,39 @@ while True:
         data_files.remove(name_file)
         save_file_info(data_files, filesJson)
     ######
+
+    #[b'cu', name, file]
     elif message[0].decode() == "cu":
-        None
+        name_file = message[1].decode()
+        id_file = int(name_file)
+        if (not(rango[0] < rango[1]) and (id_file > rango[0] or id_file < rango[1])) or (id_file > rango[0] and id_file <= rango[1]):
+        #if id_file in data_files:
+            data_files.append(name_file)
+            save_file_info(data_files, filesJson)
+            try:
+                f=open(ubicacion+"/"+name_file,"wb")
+            except:
+                f=open(ubicacion+"\\"+name_file,"wb")  
+            f.write(message[2]) #se escribe la informacion que envio el cliente
+            print("archivo: "+name_file+" recibido")
+            f.close()# se cierra el archivo
+            socketr.send_string(" ") #se envia al cliente un espacio para validar la recepcion y respuesta
+        else:
+            print("file no para mi dominio")
+            socketr.send_multipart([b'cu', b'ND', bytes(predecesor.encode())])
+    #[b'cd', name]
     elif message[0].decode() == "cd":
-        None
+        name_file = message[1].decode()
+        id_file = int(name_file)
+        if id_file in data_files:
+            print(name_file)
+            try:
+                f=open(ubicacion+"/"+name_file,"rb")
+            except:
+                f=open(ubicacion+"\\"+name_file,"rb")
+            contenido=f.read()
+            socketr.send_multipart([b'cd', contenido])
+            print("Send :"+name_file)
+        else:
+            print("file no para mi dominio")
+            socketr.send_multipart([b'cu', b'ND', bytes(predecesor.encode())])
