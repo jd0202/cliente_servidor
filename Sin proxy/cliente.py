@@ -17,7 +17,7 @@ context = zmq.Context()
 print("Connecting to server...")
 socket = context.socket(zmq.REQ)
 ip_server="tcp://"+input("ingrese la direccion del servidor: ")
-puerto = input("ingrese el puerto del proxy: ")
+puerto = input("ingrese el puerto del servidor: ")
 server=ip_server+":"+puerto
 socket.connect(server) #se conecta al servidor
 filecJson = "filesc.json"
@@ -57,19 +57,27 @@ if op == "1":
             print("Partes a enviar: "+str(num_all_parts))
             data_files[name_file] =  []#se crea el nuevo hash
 
+            count_part=1 #contador de partes de archivo
             with open (name_file,"rb") as f:
-                contenido=f.read(size) #se lee un parte del archivo
-                sha1_hash = hashlib.sha1(contenido).hexdigest()
-                socket.send_multipart([b'cu', bytes(sha1_hash.encode()), contenido])
-                message = socket.recv_multipart()
-                while message[1].decode() == "ND":
-                    socket.disconnect(server)
-                    server = message[2].decode()
-                    socket.connect(server)
+                while count_part <= num_all_parts:
+                    contenido=f.read(size) #se lee un parte del archivo
+                    sha1_hash = hashlib.sha1(contenido).hexdigest()
+                    ####bloque de prueba
+                    #l=["10","11","9"]
+                    #sha1_hash = l[count_part-1]
+                    ####
                     socket.send_multipart([b'cu', bytes(sha1_hash.encode()), contenido])
                     message = socket.recv_multipart()
-                data_files[name_file].append(sha1_hash)
-                save_file_info(data_files,filecJson)
+                    while message[1].decode() == "ND":
+                        socket.disconnect(server)
+                        server = message[2].decode()
+                        socket.connect(server)
+                        socket.send_multipart([b'cu', bytes(sha1_hash.encode()), contenido])
+                        message = socket.recv_multipart()
+                    data_files[name_file].append(sha1_hash)
+                    save_file_info(data_files,filecJson)
+                    count_part+=1
+                f.close()
             print("Archivo enviado")
     else:
         print("Archivo no encontrado, por favor revise el nombre del archivo")
@@ -81,6 +89,8 @@ elif op == "2":
         [b'cd', name]
     archivo no en el dominio
         [b'cd', b'ND', predecesor(ip:port)]
+    archivo si en el dominio
+        [b'cd', b'ok',file]
     '''
     name_file=input("Nombre de archivo a descargar: ") #se solicita el nombre del archivo a descargar
     if name_file in data_files.keys():
@@ -99,7 +109,7 @@ elif op == "2":
                 f=open("Descargas"+"/"+name_file,"ab")
             except:
                 f=open("Descargas"+"\\"+name_file,"ab")
-            f.write(message[1])
+            f.write(message[2])
             f.close()
         print("Archivo recibido")
     else:
