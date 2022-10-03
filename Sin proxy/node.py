@@ -18,7 +18,7 @@ socketr = context.socket(zmq.REP)
 
 id = get_id() #funcion que genera un id aleatorio para el servidor
 #####Bloque de prueba
-id =int(input("idserver?"))
+#id =int(input("idserver?"))
 #####
 ip = get_ip() #funcion que optiene las ip del dispositivo
 port = input("Ingrese su puerto: ")
@@ -84,6 +84,8 @@ if server != "tcp://-f": #en caso de que NO ser el primer servidor
     sockets.send_multipart([b'sn', bytes(str(id).encode()), bytes(my_ip.encode())]) #se envia la notificacion de que se trata de un nuevo servidor
     message = sockets.recv_multipart() #se recibe la respuesta
     while message[1].decode() == "NC": #en caso de que el servidor no sea el que contiene el id del nuevo en el dominio se busca hasta encontrarlo
+        if message[2].decode() == "N42":
+            sys.exit("No existe el 42")
         sockets.disconnect(server)
         server = message[2].decode()
         sockets.connect(server)
@@ -188,6 +190,8 @@ while True:
             print("predecesor id = " + str(id_predecesor))
             print("predecesor = " + predecesor)
             print("rango [0] ="+str(rango[0])+" rango[0] = "+str(rango[1]))
+        elif id_recv == id:
+            socketr.send_multipart([b'snp', b'NC', b'N42'])
         else:
             print("idserve no en mi dominio")
             socketr.send_multipart([b'snp', b'NC', bytes(predecesor.encode())])
@@ -218,15 +222,18 @@ while True:
         print("file : "+str(id_file))
         if (not(rango[0] < rango[1]) and (id_file > rango[0] or id_file <= rango[1])) or (id_file > rango[0] and id_file <= rango[1]):
         #if id_file in data_files:
-            data_files.append(name_file)
-            save_data_file(data_files,filesJson)
-            try:
-                f=open(ubicacion+"/"+name_file,"wb")
-            except:
-                f=open(ubicacion+"\\"+name_file,"wb")  
-            f.write(message[2]) #se escribe la informacion que envio el cliente
-            print("archivo: "+name_file+" recibido")
-            f.close()# se cierra el archivo
+            if name_file in data_files:
+                print("archivo: "+name_file+" ya existente")   
+            else: 
+                data_files.append(name_file)
+                save_data_file(data_files,filesJson)
+                try:
+                    f=open(ubicacion+"/"+name_file,"wb")
+                except:
+                    f=open(ubicacion+"\\"+name_file,"wb")  
+                f.write(message[2]) #se escribe la informacion que envio el cliente
+                print("archivo: "+name_file+" recibido")
+                f.close()# se cierra el archivo
             socketr.send_multipart([b'cu', b'', bytes(predecesor.encode())])#se envia al cliente un espacio para validar la recepcion y respuesta
         else:
             print("file no para mi dominio")
