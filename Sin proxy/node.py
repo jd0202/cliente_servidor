@@ -172,7 +172,8 @@ while True:
         elif id_recv > rango[0] and id_recv <= rango[1]:
             move_file = list()
             for i in data_files:
-                if int(i) < rango[1]:
+                int_i = to_int(i)
+                if int_i < rango[1]:
                     move_file.append(i)
             rango[0] = id_recv
             if move_file:
