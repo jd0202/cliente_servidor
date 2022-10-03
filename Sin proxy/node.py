@@ -134,7 +134,8 @@ while True:
         if not(rango[0] < rango[1]) and id_recv > rango[0]: #en caso de que el nuevo servidor tenga un id mayor al del servidor que ya existe
             move_file = list()
             for i in data_files:
-                if (int(i) > rango[0]) and (int(i) <= id_recv):
+                int_i = to_int(i)
+                if (int_i > rango[0]) and (int_i <= id_recv):
                     move_file.append(i)
             rango[0] = id_recv
             if move_file:
@@ -152,7 +153,8 @@ while True:
         elif not(rango[0] < rango[1]) and id_recv < rango[1]:
             move_file = list()
             for i in data_files:
-                if (int(i) > rango[1]) or (int(i) <= id_recv):
+                int_i = to_int(i)
+                if (int_i > rango[1]) or (int_i <= id_recv):
                     move_file.append(i)
             rango[0] = id_recv
             if move_file:
